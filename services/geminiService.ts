@@ -1,11 +1,12 @@
+/// <reference types="vite/client" />
 import { GoogleGenAI, Type } from "@google/genai";
 import { AITagResponse } from "../types";
 
-const apiKey = process.env.API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 let client: GoogleGenAI | null = null;
 
 if (apiKey) {
-  client = new GoogleGenAI({ apiKey });
+  client = new GoogleGenAI(apiKey);
 }
 
 export const generateAIAnalysis = async (videoTitle: string): Promise<AITagResponse> => {
@@ -40,7 +41,7 @@ export const generateAIAnalysis = async (videoTitle: string): Promise<AITagRespo
 
     const text = response.text;
     if (!text) throw new Error("No response from AI");
-    
+
     return JSON.parse(text) as AITagResponse;
   } catch (error) {
     console.error("Gemini AI Error:", error);

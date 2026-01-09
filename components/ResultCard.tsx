@@ -1,6 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Play, Music2, Film, Sparkles, CheckCircle2, Loader2, Copy } from 'lucide-react';
-import { VideoMetadata, MediaType, DownloadStatus, AITagResponse } from '../types';
+import React, { useState } from 'react';
+import {
+  Download,
+  Settings2,
+  Sparkles,
+  ChevronRight,
+  Clock,
+  Eye,
+  User,
+  CheckCircle2,
+  FileVideo,
+  Music4,
+  RotateCcw,
+  Share2
+} from 'lucide-react';
+import { VideoMetadata, DownloadStatus, AITagResponse } from '../types';
 import { generateAIAnalysis } from '../services/geminiService';
 
 interface ResultCardProps {
@@ -9,192 +22,224 @@ interface ResultCardProps {
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({ metadata, onReset }) => {
-  const [selectedType, setSelectedType] = useState<MediaType>(MediaType.VIDEO);
+  const [format, setFormat] = useState<'video' | 'audio'>('video');
   const [status, setStatus] = useState<DownloadStatus>(DownloadStatus.READY);
   const [progress, setProgress] = useState(0);
   const [aiData, setAiData] = useState<AITagResponse | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Simulate AI Analysis on mount or when requested
   const handleAIAnalysis = async () => {
-    setIsAiLoading(true);
+    setIsAnalyzing(true);
     try {
-      // Simulating a title since we might only have ID from client-side regex
-      // In a real app, this title would come from the backend metadata fetch
-      const titleToAnalyze = metadata.title || "Unknown Amazing Video"; 
-      const data = await generateAIAnalysis(titleToAnalyze);
-      setAiData(data);
-    } catch (e) {
-      console.error(e);
+      const result = await generateAIAnalysis(metadata.title);
+      if (result) setAiData(result);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setIsAiLoading(false);
+      setIsAnalyzing(false);
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setStatus(DownloadStatus.DOWNLOADING);
     setProgress(0);
-    
-    // Simulate download progress
+
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 100) {
+        if (prev >= 45) {
           clearInterval(interval);
-          setStatus(DownloadStatus.COMPLETED);
-          return 100;
+          return 45;
         }
-        return prev + Math.random() * 10;
+        return prev + Math.random() * 15;
       });
-    }, 200);
+    }, 300);
+
+    try {
+      const formData = new FormData();
+      formData.append('url', metadata.url);
+      formData.append('format', format);
+
+      const response = await fetch('api/download.php', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      clearInterval(interval);
+
+      if (data.success) {
+        setProgress(100);
+        setStatus(DownloadStatus.COMPLETED);
+        setTimeout(() => {
+          window.location.href = data.downloadUrl;
+        }, 500);
+      } else {
+        alert("Hata: " + (data.error || "İndirme başarısız."));
+        setStatus(DownloadStatus.READY);
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Bağlantı hatası: Sunucuya ulaşılamadı.");
+      setStatus(DownloadStatus.READY);
+    }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-      <div className="glass-panel rounded-3xl p-6 md:p-8 grid md:grid-cols-2 gap-8 relative overflow-hidden">
-        
-        {/* Decorative background glow */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
-
-        {/* Left: Thumbnail & Visuals */}
-        <div className="space-y-6">
-          <div className="relative group rounded-2xl overflow-hidden aspect-video shadow-2xl border border-white/10">
-            <img 
-              src={metadata.thumbnail} 
-              alt="Thumbnail" 
-              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Play className="w-12 h-12 text-white fill-white/20" />
-            </div>
-            <div className="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded text-xs font-mono">
-              {metadata.duration}
+    <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-entrance">
+      {/* Left Column */}
+      <div className="lg:col-span-5 space-y-6">
+        <div className="relative group rounded-[32px] overflow-hidden glass border-main shadow-2xl">
+          <img
+            src={metadata.thumbnail}
+            alt={metadata.title}
+            className="w-full aspect-video object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+          <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+            <div className="px-4 py-1.5 rounded-xl glass border-white/20 text-white font-bold text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" /> {metadata.duration}
             </div>
           </div>
 
-          {!aiData && !isAiLoading && (
-            <button 
-              onClick={handleAIAnalysis}
-              className="w-full py-3 rounded-xl border border-dashed border-secondary/50 text-secondary hover:bg-secondary/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-            >
-              <Sparkles className="w-4 h-4" />
-              Yapay Zeka ile Analiz Et
-            </button>
-          )}
-
-          {isAiLoading && (
-            <div className="w-full py-4 text-center text-gray-400 text-sm flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-secondary" />
-              Gemini içeriği inceliyor...
+          {status === DownloadStatus.DOWNLOADING && (
+            <div className="absolute inset-0 glass backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+              <div className="relative w-24 h-24 mb-6">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
+                  <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - progress / 100)} className="text-primary transition-all duration-300" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center font-black text-2xl text-white">
+                  %{Math.round(progress)}
+                </div>
+              </div>
+              <h3 className="text-xl font-black text-white mb-2">Hazırlanıyor...</h3>
+              <p className="text-white/60 text-sm font-medium">Format dönüştürülüyor.</p>
             </div>
           )}
 
-          {aiData && (
-            <div className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-3 animate-in zoom-in-95">
-              <div className="flex items-center gap-2 text-secondary text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3 h-3" /> Gemini Analizi
+          {status === DownloadStatus.COMPLETED && (
+            <div className="absolute inset-0 glass backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center animate-in zoom-in duration-500">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-green-500/40 animate-bounce">
+                <CheckCircle2 className="w-10 h-10 text-white" />
               </div>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                {aiData.summary}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {aiData.tags.map((tag, i) => (
-                  <span key={i} className="text-[10px] px-2 py-1 rounded-md bg-white/5 text-gray-400 border border-white/5">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-              <div className="pt-2 border-t border-white/5 flex items-center justify-between group cursor-pointer" onClick={() => navigator.clipboard.writeText(aiData.suggestedFilename)}>
-                <div className="text-xs text-gray-500">Önerilen Dosya Adı:</div>
-                <div className="text-xs text-gray-300 font-mono flex items-center gap-1 group-hover:text-primary transition-colors">
-                  {aiData.suggestedFilename}.{selectedType === MediaType.VIDEO ? 'mp4' : 'mp3'}
-                  <Copy className="w-3 h-3" />
-                </div>
-              </div>
+              <h3 className="text-2xl font-black text-white mb-2">Tamamlandı!</h3>
+              <button onClick={onReset} className="flex items-center gap-2 text-white/80 hover:text-white font-bold transition-colors">
+                <RotateCcw className="w-5 h-5" /> Başka bir video
+              </button>
             </div>
           )}
         </div>
 
-        {/* Right: Controls */}
-        <div className="flex flex-col justify-between">
+        <div className="glass p-8 rounded-[32px] border-main space-y-6">
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold leading-tight text-white line-clamp-2">
-              {metadata.title || "YouTube Video ID: " + metadata.id}
+            <h2 className="text-2xl font-black tracking-tight text-main line-clamp-2 leading-tight">
+              {metadata.title}
             </h2>
-            <div className="flex items-center gap-4 text-sm text-gray-400">
-              <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-medium">HD</span>
-              <span>•</span>
-              <span>YouTube</span>
-            </div>
           </div>
 
-          <div className="mt-8 space-y-6">
-            {/* Type Selector */}
-            <div className="bg-black/40 p-1.5 rounded-xl flex relative">
-              <div 
-                className={`absolute inset-y-1.5 w-1/2 bg-white/10 rounded-lg shadow-sm transition-all duration-300 ease-out ${selectedType === MediaType.AUDIO ? 'translate-x-full' : 'translate-x-0'}`}
-              />
-              <button
-                onClick={() => setSelectedType(MediaType.VIDEO)}
-                className={`relative flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors z-10 ${selectedType === MediaType.VIDEO ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                <Film className="w-4 h-4" /> Video (MP4)
-              </button>
-              <button
-                onClick={() => setSelectedType(MediaType.AUDIO)}
-                className={`relative flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors z-10 ${selectedType === MediaType.AUDIO ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                <Music2 className="w-4 h-4" /> Ses (MP3)
-              </button>
-            </div>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setFormat('video')}
+              className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-300 border-2 ${format === 'video' ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10' : 'bg-surface border-main hover:border-muted'
+                }`}
+            >
+              <FileVideo className={`w-8 h-8 ${format === 'video' ? 'text-primary' : 'text-muted'}`} />
+              <div className="text-center">
+                <div className={`font-black text-xs ${format === 'video' ? 'text-main' : 'text-muted'}`}>VIDEO</div>
+                <div className="text-[10px] text-muted font-bold">4K MP4</div>
+              </div>
+            </button>
+            <button
+              onClick={() => setFormat('audio')}
+              className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-300 border-2 ${format === 'audio' ? 'bg-secondary/10 border-secondary shadow-lg shadow-secondary/10' : 'bg-surface border-main hover:border-muted'
+                }`}
+            >
+              <Music4 className={`w-8 h-8 ${format === 'audio' ? 'text-secondary' : 'text-muted'}`} />
+              <div className="text-center">
+                <div className={`font-black text-xs ${format === 'audio' ? 'text-main' : 'text-muted'}`}>SES</div>
+                <div className="text-[10px] text-muted font-bold">320kbps MP3</div>
+              </div>
+            </button>
+          </div>
 
-            {/* Quality Options (Visual Only for Demo) */}
-            <div className="grid grid-cols-3 gap-3">
-               {['1080p', '720p', '480p'].map((q) => (
-                 <button 
-                  key={q} 
-                  disabled={selectedType === MediaType.AUDIO}
-                  className={`py-2 rounded-lg text-xs font-medium border transition-all ${selectedType === MediaType.AUDIO ? 'opacity-30 border-white/5' : 'border-white/10 hover:bg-white/5 hover:border-primary/50 text-gray-400'}`}
-                >
-                  {q}
-                 </button>
-               ))}
-            </div>
+          <button
+            disabled={status === DownloadStatus.DOWNLOADING}
+            onClick={handleDownload}
+            className="w-full btn-primary h-16 flex items-center justify-center gap-3"
+          >
+            <Download className="w-6 h-6" />
+            <span className="text-lg font-black">Hemen İndir</span>
+          </button>
+        </div>
+      </div>
 
-            {/* Action Button */}
-            {status === DownloadStatus.DOWNLOADING ? (
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>Dönüştürülüyor...</span>
-                  <span>{Math.round(progress)}%</span>
+      {/* Right Column */}
+      <div className="lg:col-span-7 space-y-6">
+        <div className="glass p-10 rounded-[40px] border-main relative overflow-hidden group">
+          <div className="relative z-10 space-y-8">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="bg-secondary/20 p-3 rounded-2xl border border-secondary/30">
+                  <Sparkles className="w-6 h-6 text-secondary" />
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-200"
-                    style={{ width: `${progress}%` }}
-                  />
+                <div>
+                  <h3 className="text-2xl font-black text-main leading-tight">AI Akıllı Analiz</h3>
+                  <p className="text-sm text-muted font-bold">Gemini Pro Destekli</p>
                 </div>
               </div>
-            ) : status === DownloadStatus.COMPLETED ? (
-               <button 
-                className="w-full py-4 rounded-xl bg-green-500/20 text-green-400 border border-green-500/50 flex items-center justify-center gap-2 font-semibold hover:bg-green-500/30 transition-all"
-                onClick={onReset}
-              >
-                <CheckCircle2 className="w-5 h-5" />
-                İndirme Tamamlandı
-              </button>
+
+              {!aiData && !isAnalyzing && (
+                <button
+                  onClick={handleAIAnalysis}
+                  className="px-6 py-3 rounded-2xl bg-surface border border-main hover:border-secondary text-sm font-bold text-main transition-all flex items-center gap-2"
+                >
+                  Analizi Başlat <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {isAnalyzing ? (
+              <div className="py-20 flex flex-col items-center justify-center space-y-6">
+                <div className="w-16 h-16 border-4 border-secondary/20 border-t-secondary rounded-full animate-spin" />
+                <p className="text-xl font-black text-main animate-pulse">Video İnceleniyor...</p>
+              </div>
+            ) : aiData ? (
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-secondary flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" /> Video Özeti
+                  </h4>
+                  <div className="bg-surface-elevated/50 p-6 rounded-3xl border border-main leading-relaxed text-main font-medium italic">
+                    "{aiData.summary}"
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-secondary flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> SEO Etiketleri
+                  </h4>
+                  <div className="flex flex-wrap gap-3">
+                    {aiData.tags.map((tag, i) => (
+                      <span key={i} className="tag-badge">#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-secondary flex items-center gap-2">
+                    <Share2 className="w-4 h-4" /> Önerilen Dosya Adı
+                  </h4>
+                  <div className="p-4 bg-main/50 rounded-2xl border border-dashed border-main truncate font-bold text-muted text-sm">
+                    {aiData.suggestedFilename}
+                  </div>
+                </div>
+              </div>
             ) : (
-              <button 
-                onClick={handleDownload}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-primary via-accent to-secondary text-white font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
-              >
-                <Download className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
-                Hemen İndir
-              </button>
+              <div className="py-20 text-center space-y-4 border-2 border-dashed border-main rounded-[32px] bg-main/5">
+                <Sparkles className="w-12 h-12 text-muted mx-auto opacity-20" />
+                <p className="text-muted font-bold">Video içeriği hakkında bilgi almak için <br />analizi başlatın.</p>
+              </div>
             )}
-            
-            <button onClick={onReset} className="w-full text-center text-xs text-gray-500 hover:text-white transition-colors">
-              Farklı bir video ara
-            </button>
           </div>
         </div>
       </div>

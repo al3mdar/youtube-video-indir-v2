@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İletişim - Reklamsız İndir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --gradient-sanata: linear-gradient(to right, #8B5CF6, #D946EF, #F43F5E);
+            --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #000000;
+            --bg-surface: rgba(10, 10, 10, 0.7);
+            --bg-surface-elevated: #0A0A0A;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --text-dim: #555555;
+            --border-main: rgba(255, 255, 255, 0.08);
+            --btn-ghost-bg: #3F3F3F;
+            --btn-ghost-hover: #4F4F4F;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #F8FAFC;
+            --bg-surface: rgba(255, 255, 255, 0.8);
+            --bg-surface-elevated: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --text-dim: #94A3B8;
+            --border-main: rgba(0, 0, 0, 0.08);
+            --btn-ghost-bg: #E2E8F0;
+            --btn-ghost-hover: #CBD5E1;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            transition: background-color var(--transition-base), color var(--transition-base);
+        }
+
+        .gradient-text-sanata {
+            background: var(--gradient-sanata);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass {
+            background: var(--bg-surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-main);
+        }
+
+        @keyframes entrance {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-entrance {
+            animation: entrance 0.8s forwards;
+        }
+
+        .main-title {
+            color: var(--text-main);
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .text-dim {
+            color: var(--text-dim);
+        }
+
+        .contact-card {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-main);
+            border-radius: 32px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            border-color: #8B5CF6;
+        }
+
+        .form-input {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-main);
+            border-radius: 16px;
+            padding: 16px;
+            width: 100%;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #8B5CF6;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.1);
+        }
+
+        .btn-submit {
+            background: var(--gradient-sanata);
+            color: white;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 800;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center">
+    <!-- Navbar -->
+    <nav class="w-full py-10 px-6 md:px-20 flex justify-between items-center z-50 animate-entrance"
+        style="animation-delay: 0.1s">
+        <a href="index.html" class="flex items-center gap-3 cursor-pointer group">
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:rotate-12 transition-transform duration-500">
+                <i data-lucide="zap" class="w-6 h-6 text-white fill-white"></i>
+            </div>
+            <span class="text-[22px] font-black tracking-tighter main-title">Reklamsız İndir</span>
+        </a>
+
+        <div class="flex items-center gap-6">
+            <button id="themeToggle" class="text-muted hover:text-main transition-colors">
+                <i id="themeIcon" data-lucide="sun" class="w-5 h-5"></i>
+            </button>
+            <a href="index.html"
+                class="px-6 py-2.5 rounded-full border border-white/10 hover:bg-white/5 transition-all text-[13px] font-black main-title glass flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Geri Dön
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full flex flex-col items-center p-6 pb-20 mt-10">
+        <div class="w-full max-w-5xl animate-entrance" style="animation-delay: 0.2s">
+            <div class="text-center mb-16">
+                <h1 class="text-[40px] md:text-[72px] font-black tracking-tighter main-title leading-[1] mb-6">
+                    Bize <span class="gradient-text-sanata">Ulaşın</span>
+                </h1>
+                <p class="text-[18px] text-muted max-w-2xl mx-auto">
+                    Sorularınız, önerileriniz veya iş birliği talepleriniz için bize mesaj gönderebilirsiniz.
+                    En kısa sürede size dönüş yapacağız.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+                <!-- Info Cards -->
+                <div class="md:col-span-5 space-y-6">
+                    <div class="contact-card">
+                        <div class="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-4">
+                            <i data-lucide="mail" class="w-6 h-6 text-purple-500"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-2 main-title">E-posta</h3>
+                        <p class="text-muted font-medium">destek@alemdardev.com</p>
+                    </div>
+
+                    <div class="contact-card">
+                        <div class="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center mb-4">
+                            <i data-lucide="map-pin" class="w-6 h-6 text-pink-500"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-2 main-title">Konum</h3>
+                        <p class="text-muted font-medium">İstanbul, Türkiye</p>
+                    </div>
+
+                    <div class="contact-card">
+                        <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
+                            <i data-lucide="github" class="w-6 h-6 text-blue-500"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-2 main-title">GitHub</h3>
+                        <p class="text-muted font-medium">github.com/alemdardev</p>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="md:col-span-7">
+                    <div class="glass p-8 md:p-12 rounded-[40px] space-y-8">
+                        <form id="contactForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[13px] font-black text-muted uppercase tracking-wider pl-2">Ad
+                                        Soyad</label>
+                                    <input type="text" name="name" placeholder="Adınız" class="form-input" required>
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[13px] font-black text-muted uppercase tracking-wider pl-2">E-posta</label>
+                                    <input type="email" name="email" placeholder="ornek@mail.com" class="form-input"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[13px] font-black text-muted uppercase tracking-wider pl-2">Konu</label>
+                                <input type="text" name="subject" placeholder="Nasıl yardımcı olabiliriz?"
+                                    class="form-input">
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    class="text-[13px] font-black text-muted uppercase tracking-wider pl-2">Mesajınız</label>
+                                <textarea name="message" placeholder="Mesajınızı buraya yazın..." rows="5"
+                                    class="form-input resize-none" required></textarea>
+                            </div>
+                            <button type="submit" id="submitBtn"
+                                class="btn-submit flex items-center justify-center gap-2">
+                                <span>Mesaj Gönder</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-12 text-center text-dim text-[13px] border-t border-white/5 animate-entrance"
+        style="animation-delay: 0.5s">
+        <p>© 2026 AlemdarDev. Tüm hakları saklıdır.</p>
+        <div class="mt-4 flex justify-center gap-8 font-bold">
+            <a href="index.html" class="nav-link transition-colors">Ana Sayfa</a>
+            <a href="privacy.html" class="nav-link transition-colors">Gizlilik</a>
+            <a href="terms.html" class="nav-link transition-colors">Kullanım Şartları</a>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        function updateThemeIcon(theme) {
+            themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        lucide.createIcons();
+
+        // Form Submit
+        const contactForm = document.getElementById('contactForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(contactForm);
+
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div><span>Gönderiliyor...</span>';
+
+            try {
+                const response = await fetch('api/contact.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Başarılı',
+                        text: data.message,
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#0A0A0A' : '#ffffff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#0F172A',
+                        confirmButtonColor: '#8B5CF6'
+                    });
+                    contactForm.reset();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata',
+                        text: data.error,
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#0A0A0A' : '#ffffff',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#0F172A',
+                        confirmButtonColor: '#8B5CF6'
+                    });
+                }
+            } catch (error) {
+                console.error("Submission error:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Bağlantı Hatası',
+                    text: 'Bir bağlantı hatası oluştu. Lütfen tekrar deneyin.',
+                    background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#0A0A0A' : '#ffffff',
+                    color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#0F172A',
+                    confirmButtonColor: '#8B5CF6'
+                });
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    </script>
+</body>
+
+</html>
